@@ -1,6 +1,7 @@
 # Создаём калькулятор
 
 import tkinter as tk
+from tkinter import messagebox
 
 
 def add_digit(digit):
@@ -28,7 +29,14 @@ def calculate():
 		operation = value[-1]
 		value += value[:-1]
 	calc.delete(0, tk.END)
-	calc.insert(0, eval(value))
+	try:
+		calc.insert(0, eval(value))
+	except (NameError, SyntaxError) as e:
+		messagebox.showinfo('Внимание', f'Допускаются только цифры ({e})')
+		calc.insert(0, 0)
+	except ZeroDivisionError as zde:
+		messagebox.showinfo('Внимание', f'Деление на ноль не допускается ({zde})')
+		calc.insert(0, 0)
 
 
 def clear():
@@ -52,10 +60,25 @@ def make_clear_button(operation):
 	return tk.Button(text=operation, bd=5, font=('Arial', 13), fg='red', command=clear)
 
 
+def press_key(event):
+	print(repr(event.char))
+	if event.char.isdigit():
+		add_digit(event.char)
+	elif event.char in '+-*/':
+		add_operation(event.char)
+	elif event.char == '\r':
+		calculate()
+
+
 win = tk.Tk()
 win.geometry(f"240x270+100+200")
 win['bg'] = '#33FFE6'
 win.title('Калькулятор')
+
+
+# Обработка события нажатия на клавишу
+win.bind('<Key>', press_key)
+
 
 calc = tk.Entry(win, justify=tk.RIGHT, font=('Arial', 15), width=15)
 calc.insert(0, '0')
